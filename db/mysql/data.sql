@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- Demo grooming bookings. Contact and pet details are placeholders because they were not provided.
 INSERT IGNORE INTO grooming_bookings
   (id, guardian_name, phone, pet_name, pet_type, pet_weight, service, preferred_at, memo, status)

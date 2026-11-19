@@ -1,0 +1,19 @@
+# Git 관련 파일
+.git
+.gitignore
+
+# 로컬 Maven 빌드 산출물
+target/
+
+# IDE 및 편집기 파일
+.idea/
+.vscode/
+*.iml
+
+# 로그 및 임시 파일
+*.log
+*.tmp
+
+# 운영체제 불필요 파일
+.DS_Store
+Thumbs.db

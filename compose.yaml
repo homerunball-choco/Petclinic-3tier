@@ -1,0 +1,60 @@
+
+name: petclinic-docker
+
+services:
+  # ==========================================================
+  # DB: MySQL 8.4
+  # ==========================================================
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: petclinic
+      MYSQL_USER: petclinic
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db/mysql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/mysql/data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'MYSQL_PWD="$${MYSQL_PASSWORD}" mysql -h 127.0.0.1 -u "$${MYSQL_USER}" "$${MYSQL_DATABASE}" -e "SELECT 1" >/dev/null 2>&1'
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    restart: unless-stopped
+
+  # ==========================================================
+  # WAS: Spring Petclinic + Tomcat 9
+  # ==========================================================
+  was:
+    image: petclinic-was:2.1
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: petclinic
+      DB_USER: petclinic
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ==========================================================
+  # WEB: Apache Reverse Proxy
+  # ==========================================================
+  web:
+    image: petclinic-web:1.1
+    ports:
+      - "80:80"
+    depends_on:
+      - was
+    restart: unless-stopped
+
+volumes:
+  db-data:
